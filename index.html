@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LitPath - Sistem Informasi Manajemen Perpustakaan Digital</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.cdnfonts.com/css/sf-pro-display-app');
+    
+    * { 
+      font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
+    }
+    html, body { height: 100%; margin: 0; background-color: #fdfdfd; scroll-behavior: smooth; }
+    
+    /* Premium Mahogany & Cream Wood Aesthetics Gradient */
+    .wood-bg {
+      background: linear-gradient(135deg, #1e0f07 0%, #3a1d0a 30%, #2b1508 60%, #4a2610 100%);
+      position: relative;
+    }
+    .wood-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 6px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    
+    /* Interactive Card Transitions */
+    .book-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .book-card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 22px 40px rgba(43, 21, 8, 0.25);
+    }
+    
+    /* Overlay Blur Master Style */
+    .modal-overlay { 
+      background: rgba(15, 10, 7, 0.7); 
+      backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px);
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f7f4ef; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #8b7355; border-radius: 20px; }
+    
+    .tab-active { border-bottom: 2px solid #663f22; color: #231308; }
+    .tab-inactive { color: #a37b58; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mahogany: { 
+              50: '#fbf9f6', 100: '#f4ede4', 200: '#e6d9c7', 300: '#cca785', 
+              400: '#a37b58', 500: '#835735', 600: '#663f22', 700: '#4e2f17', 
+              800: '#38200f', 900: '#231308' 
+            },
+            cream: { 50: '#fffdfa', 100: '#fbf8f2', 200: '#f5edd7', 300: '#ebdcbe', 400: '#dec79e' }
+          },
+          boxShadow: {
+            'premium': '0 10px 30px -5px rgba(35, 19, 8, 0.08), 0 4px 12px -2px rgba(35, 19, 8, 0.03)',
+            'floating': '0 20px 50px -12px rgba(35, 19, 8, 0.3)'
+          }
+        }
+      }
+    }
+  </script>
+ </head>
+ <body class="h-full text-mahogany-900 bg-cream-50 antialiased custom-scrollbar">
+  
+  <div id="app" class="h-full w-full flex flex-col">
+   
+   <div id="page-login" class="flex-1 w-full h-full wood-bg flex items-center justify-center p-4 overflow-y-auto">
+     <div class="bg-cream-50 rounded-2xl shadow-floating p-8 max-w-md w-full border border-mahogany-100/30 transition-all duration-300">
+      <div class="text-center mb-6">
+       <div class="w-14 h-14 bg-gradient-to-br from-mahogany-600 to-mahogany-800 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
+        <i class="fa-solid fa-book-bookmark text-cream-100 text-2xl"></i>
+       </div>
+       <h1 class="text-3xl font-bold text-mahogany-900 tracking-tight">LitPath</h1>
+       <p class="text-xs font-medium text-mahogany-500 uppercase tracking-widest mt-1.5">Sistem Informasi Manajemen Perpustakaan</p>
+      </div>
+
+      <div id="login-error" class="hidden mb-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 text-xs font-medium animate-pulse">
+        <i class="fa-solid fa-circle-exclamation text-base"></i>
+        <span id="error-message">Kredensial salah! Mohon periksa kembali email & sandi Anda.</span>
+      </div>
+
+      <div class="space-y-2.5 mb-5">
+        <button onclick="executeOAuth('Google')" class="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-mahogany-200 rounded-xl bg-white hover:bg-mahogany-50 text-sm font-semibold text-mahogany-800 shadow-sm transition-all">
+         <svg width="18" height="18" viewbox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+         <span>Masuk menggunakan Google</span>
+        </button>
+      </div>
+
+      <div class="relative mb-5 flex items-center justify-center">
+       <div class="absolute inset-0 w-full border-t border-mahogany-200/60"></div>
+       <span class="relative px-3 bg-cream-50 text-[11px] font-bold text-mahogany-400 uppercase tracking-wider">Atau via Email Akun</span>
+      </div>
+
+      <form onsubmit="handleSecureLogin(event)" class="space-y-4">
+       <div>
+         <label class="block text-xs font-semibold text-mahogany-700 mb-1.5 uppercase tracking-wide">Alamat Email Perpustakaan</label> 
+         <input type="email" id="login-email" placeholder="contoh: laila.azahra@email.com" required class="w-full px-3.5 py-2.5 border border-mahogany-200 rounded-xl text-sm focus:outline-none focus:border-mahogany-500 focus:ring-2 focus:ring-mahogany-200 bg-white transition-all text-mahogany-900">
+       </div>
+       <div>
+         <div class="flex justify-between items-center mb-1.5">
+           <label class="text-xs font-semibold text-mahogany-700 uppercase tracking-wide">Kata Sandi Akun</label>
+           <span class="text-[11px] font-medium text-mahogany-500 hover:underline cursor-pointer">Lupa Sandi?</span>
+         </div>
+         <input type="password" id="login-password" placeholder="••••••••" required class="w-full px-3.5 py-2.5 border border-mahogany-200 rounded-xl text-sm focus:outline-none focus:border-mahogany-500 focus:ring-2 focus:ring-mahogany-200 bg-white transition-all text-mahogany-900">
+       </div>
+       <button type="submit" class="w-full mt-2 px-4 py-3 bg-mahogany-700 text-cream-50 font-semibold text-sm rounded-xl hover:bg-mahogany-800 active:scale-[0.99] shadow-md hover:shadow-lg transition-all">Autentikasi Masuk</button>
+      </form>
+      <div class="mt-6 pt-4 border-t border-mahogany-100 text-center text-xs text-mahogany-500">
+        <p>Bantuan Teknis? Hubungi <span class="font-semibold text-mahogany-700 underline cursor-pointer">Sekretariat HMTI Dumai</span></p>
+      </div>
+     </div>
+   </div>
+
+   <nav id="navbar" class="w-full bg-white/95 border-b border-mahogany-100 px-6 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-sm backdrop-blur-md hidden">
+    <div class="flex items-center gap-3">
+     <div class="w-9 h-9 bg-gradient-to-br from-mahogany-600 to-mahogany-800 rounded-lg flex items-center justify-center shadow-sm">
+      <i class="fa-solid fa-book-bookmark text-cream-50 text-sm"></i>
+     </div>
+     <div>
+       <span class="text-lg font-bold text-mahogany-900 tracking-tight block leading-tight">LitPath</span>
+       <span id="nav-badge" class="text-[10px] text-mahogany-400 font-semibold tracking-wider uppercase block">Digital Hub</span>
+     </div>
+    </div>
+    
+    <div class="hidden md:flex items-center gap-2 text-sm font-semibold">
+     <button id="nav-btn-home" onclick="showPage('home')" class="nav-link px-4 py-2 rounded-xl transition" data-page="home">Beranda</button> 
+     <button id="nav-btn-checkout" onclick="showPage('checkout')" class="nav-link px-4 py-2 rounded-xl transition" data-page="checkout">Peminjaman</button> 
+     <button id="nav-btn-profile" onclick="showPage('profile')" class="nav-link px-4 py-2 rounded-xl transition" data-page="profile">Profil & Denda</button>
+     <button id="nav-btn-admin" onclick="showPage('admin')" class="nav-link px-4 py-2 rounded-xl text-red-700 bg-red-50 hover:bg-red-100 hidden transition" data-page="admin"><i class="fa-solid fa-shield-halved mr-1"></i> Admin Panel</button>
+    </div>
+    
+    <div class="flex items-center gap-3">
+     <button id="cart-icon-btn" onclick="showPage('checkout')" class="relative p-2.5 hover:bg-mahogany-50 rounded-xl transition group">
+       <i class="fa-solid fa-shopping-bag text-lg text-mahogany-700 group-hover:scale-105 transition-transform"></i>
+       <span id="cart-count" class="absolute top-1 right-1 w-4 h-4 bg-amber-600 text-white text-[9px] font-black rounded-full flex items-center justify-center hidden">0</span>
+     </button>
+     <button onclick="showToast('Sistem sinkronisasi berhasil dikonfigurasi')" class="p-2.5 hover:bg-mahogany-50 rounded-xl transition"><i class="fa-solid fa-bell text-lg text-mahogany-700"></i></button>
+     
+     <div class="h-6 w-[1px] bg-mahogany-100 mx-1"></div>
+     
+     <button onclick="showPage('profile')" class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 bg-mahogany-50 hover:bg-mahogany-100 rounded-full border border-mahogany-200/50 transition">
+       <div class="w-7 h-7 rounded-full bg-mahogany-600 border border-mahogany-400 flex items-center justify-center overflow-hidden shadow-sm">
+         <i class="fa-solid fa-user text-cream-50 text-xs"></i>
+       </div>
+       <span id="nav-user-name" class="text-xs font-bold text-mahogany-800 hidden sm:inline">User</span>
+     </button>
+     <button onclick="logout()" class="p-2.5 hover:bg-red-50 text-mahogany-500 hover:text-red-600 rounded-xl transition" title="Keluar dari Sistem"><i class="fa-solid fa-arrow-right-from-bracket text-lg"></i></button>
+    </div>
+   </nav>
+
+   <div id="page-home" class="page flex-1 flex flex-col overflow-auto hidden">
+    <div class="w-full bg-white border-b border-mahogany-100 px-6 py-5 shadow-sm">
+     <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-mahogany-900 tracking-tight">Koleksi Katalog Digital</h1>
+        <p class="text-xs text-mahogany-400 mt-0.5 font-medium">Sistem Visualisasi Manajemen Data Berbasis Buku Fisik Nyata</p>
+      </div>
+      <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 max-w-2xl w-full md:w-auto">
+       <div class="relative flex-1 sm:w-72">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-mahogany-400"></i>
+        <input type="text" id="search-input" placeholder="Cari judul, penulis, atau ISBN..." class="w-full pl-10 pr-4 py-2.5 bg-mahogany-50 border border-mahogany-200/70 rounded-xl text-xs font-medium focus:outline-none focus:border-mahogany-500 focus:bg-white transition-all shadow-inner" oninput="filterBooks()">
+       </div>
+       <div class="relative">
+         <select id="genre-filter" onchange="filterBooks()" class="appearance-none pl-3.5 pr-8 py-2.5 bg-mahogany-50 border border-mahogany-200/70 rounded-xl text-xs font-bold text-mahogany-700 focus:outline-none focus:bg-white transition-all cursor-pointer shadow-sm">
+           <option value="">Semua Genre</option><option value="Fiksi">Fiksi</option><option value="Sains">Sains</option><option value="Sejarah">Sejarah</option><option value="Filsafat">Filsafat</option><option value="Sastra">Sastra</option>
+         </select>
+         <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-mahogany-500 pointer-events-none"></i>
+       </div>
+       <div class="relative">
+         <select id="year-filter" onchange="filterBooks()" class="appearance-none pl-3.5 pr-8 py-2.5 bg-mahogany-50 border border-mahogany-200/70 rounded-xl text-xs font-bold text-mahogany-700 focus:outline-none focus:bg-white transition-all cursor-pointer shadow-sm">
+           <option value="">Semua Tahun</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="classic">Klasik</option>
+         </select>
+         <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-mahogany-500 pointer-events-none"></i>
+       </div>
+      </div>
+     </div>
+    </div>
+    
+    <div class="wood-bg flex-1 px-6 py-8">
+     <div class="max-w-6xl mx-auto">
+      <div id="book-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      <div id="no-results" class="hidden text-center text-cream-200 py-24 bg-black/20 rounded-2xl border border-white/5 border-dashed">
+        <i class="fa-solid fa-cloud-moon text-4xl text-cream-400 opacity-60 mb-3 block"></i>
+        <p class="text-sm font-medium">Buku tidak terdaftar pada indeks perpustakaan.</p>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <div id="page-checkout" class="page flex-1 overflow-auto hidden">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+     <div class="flex items-center gap-3 mb-6">
+       <i class="fa-solid fa-basket-shopping text-xl text-mahogany-700"></i>
+       <h2 class="text-xl font-bold text-mahogany-900 tracking-tight">Formulir Check-out Reservasi Buku</h2>
+     </div>
+     
+     <div class="flex flex-col lg:flex-row gap-8">
+      <div class="flex-1 space-y-6">
+       <div>
+         <h3 class="text-xs font-bold text-mahogany-400 uppercase tracking-wide mb-3">Daftar Buku Terpilih</h3>
+         <div id="cart-items" class="space-y-4"></div>
+         <div id="cart-empty" class="bg-white border border-dashed border-mahogany-200 rounded-2xl p-12 text-center">
+           <i class="fa-solid fa-folder-open text-3xl text-mahogany-300 mb-2 block"></i>
+           <p class="text-mahogany-400 text-sm font-medium">Keranjang reservasi kosong. Silakan pilih buku di Beranda.</p>
+         </div>
+       </div>
+
+       <div id="checkout-form-panel" class="bg-white border border-mahogany-200 rounded-2xl p-6 shadow-sm hidden">
+         <h3 class="font-bold text-sm text-mahogany-900 mb-4 pb-2 border-b border-mahogany-100 flex items-center gap-2">
+           <i class="fa-solid fa-id-card text-mahogany-600"></i> Informasi Kontak & Pengiriman Sistem
+         </h3>
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+           <div>
+             <label class="block text-[11px] font-bold text-mahogany-700 uppercase mb-1">Nama Lengkap Peminjam</label>
+             <input type="text" id="checkout-name" required class="w-full text-xs border border-mahogany-200 rounded-lg px-3 py-2.5 bg-mahogany-50 text-mahogany-900 focus:outline-none focus:border-mahogany-500 bg-white">
+           </div>
+           <div>
+             <label class="block text-[11px] font-bold text-mahogany-700 uppercase mb-1">Nomor HP / WhatsApp</label>
+             <input type="tel" id="checkout-phone" placeholder="Contoh: 08123456789" required class="w-full text-xs border border-mahogany-200 rounded-lg px-3 py-2.5 bg-mahogany-50 text-mahogany-900 focus:outline-none focus:border-mahogany-500 bg-white">
+           </div>
+         </div>
+         <div class="mb-4">
+           <label class="block text-[11px] font-bold text-mahogany-700 uppercase mb-1">Alamat Lengkap</label>
+           <textarea id="checkout-address" rows="2" placeholder="Masukkan alamat domisili lengkap Anda..." required class="w-full text-xs border border-mahogany-200 rounded-lg px-3 py-2 bg-mahogany-50 text-mahogany-900 focus:outline-none focus:border-mahogany-500 bg-white"></textarea>
+         </div>
+         <div>
+           <label class="block text-[11px] font-bold text-mahogany-700 uppercase mb-1">Notes / Catatan Pesan Tambahan</label>
+           <textarea id="checkout-notes" rows="1" placeholder="Contoh: Diambil sore hari jam 4..." class="w-full text-xs border border-mahogany-200 rounded-lg px-3 py-2 bg-mahogany-50 text-mahogany-900 focus:outline-none focus:border-mahogany-500 bg-white"></textarea>
+         </div>
+       </div>
+      </div>
+      
+      <div class="w-full lg:w-80">
+       <div class="bg-white border border-mahogany-200/80 rounded-2xl p-5 sticky top-24 shadow-premium">
+        <h3 class="font-bold text-sm text-mahogany-900 mb-4 pb-2 border-b border-mahogany-100 flex items-center justify-between">
+          <span>Ringkasan Transaksi</span>
+          <i class="fa-solid fa-receipt text-mahogany-400"></i>
+        </h3>
+        <div class="space-y-3 text-xs font-semibold text-mahogany-600 mb-5">
+         <div class="flex justify-between items-center">
+          <span>Total Eksemplar</span><span id="summary-count" class="font-bold text-sm text-mahogany-900 bg-mahogany-100 px-2 py-0.5 rounded-md">0</span>
+         </div>
+         <div class="flex justify-between items-center">
+          <span>Metode Ambil</span><span class="font-bold text-mahogany-800 text-right">Click & Collect</span>
+         </div>
+         
+         <div class="pt-2 border-t border-mahogany-100 flex flex-col gap-1.5">
+           <label class="text-[11px] font-bold text-mahogany-700 uppercase">Metode Integrasi E-Wallet / Admin</label>
+           <select id="checkout-payment" class="w-full text-xs font-bold border border-mahogany-200 rounded-lg px-2.5 py-2 bg-mahogany-50 text-mahogany-900 cursor-pointer focus:outline-none">
+             <option value="Dana">DANA Digital</option>
+             <option value="OVO">OVO Cash</option>
+             <option value="GoPay">GoPay Indonesia</option>
+             <option value="ShopeePay">ShopeePay Wallet</option>
+           </select>
+         </div>
+
+         <div class="pt-2 flex flex-col gap-1.5 relative">
+          <label class="text-[11px] font-bold text-mahogany-700 uppercase">Tanggal Penjemputan Buku</label>
+          <input type="date" id="pickup-date" class="w-full text-xs font-bold border border-mahogany-200 rounded-lg px-3 py-2 bg-mahogany-50 text-mahogany-900 cursor-pointer focus:outline-none">
+         </div>
+        </div>
+        <button onclick="confirmReservation()" id="confirm-btn" class="w-full py-3 bg-mahogany-700 text-cream-50 text-sm font-bold rounded-xl hover:bg-mahogany-800 shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all" disabled>Konfirmasi Pesanan</button>
+        <p class="text-[10px] text-mahogany-400 font-medium mt-3 text-center leading-snug"><i class="fa-solid fa-circle-info mr-1"></i>Sistem sinkron otomatis menghasilkan kode QR transaksi.</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <div id="page-profile" class="page flex-1 overflow-auto hidden">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-6 border border-mahogany-200/60 rounded-2xl shadow-premium">
+      <div class="flex items-center gap-4">
+       <div class="w-16 h-16 rounded-full bg-gradient-to-br from-mahogany-600 to-mahogany-800 border-2 border-mahogany-300 shadow-md flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-user-astronaut text-cream-50 text-2xl"></i>
+       </div>
+       <div>
+        <h2 id="profile-display-name" class="text-xl font-bold text-mahogany-900 tracking-tight">Ahmad Firdaus</h2>
+        <p id="profile-display-email" class="text-xs font-medium text-mahogany-400 mt-0.5">ahmad.firdaus@email.com</p>
+        <div class="mt-1.5 flex items-center gap-1.5">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-md border border-emerald-200/50 uppercase"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Aktif</span>
+          <span class="text-[11px] text-mahogany-400 font-medium">Mahasiswa Sistem Informasi</span>
+        </div>
+       </div>
+      </div>
+      <button onclick="toggleEditProfile()" class="px-4 py-2 border border-mahogany-200 hover:bg-mahogany-50 text-mahogany-800 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-user-gear"></i> Modifikasi Profil</button>
+     </div>
+
+     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+      <div class="bg-white border border-mahogany-200/70 rounded-2xl p-5 shadow-premium">
+       <div class="flex items-center justify-between mb-2">
+         <span class="text-xs font-bold text-mahogany-400 uppercase tracking-wide">Total Poin Penalti</span>
+         <div class="w-7 h-7 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600"><i class="fa-solid fa-triangle-exclamation text-xs"></i></div>
+       </div>
+       <p id="profile-penalty-points" class="text-3xl font-black text-mahogany-900 tracking-tight">0</p>
+       <p class="text-[10px] font-semibold text-mahogany-500 mt-1.5 bg-mahogany-50 px-2 py-0.5 rounded inline-block">Batas Kunci Akun: 25 Poin</p>
+      </div>
+      
+      <div class="bg-white border border-mahogany-200/70 rounded-2xl p-5 shadow-premium">
+       <div class="flex items-center justify-between mb-2">
+         <span class="text-xs font-bold text-mahogany-400 uppercase tracking-wide">Denda Administrasi</span>
+         <div class="w-7 h-7 bg-red-50 rounded-lg flex items-center justify-center text-red-600"><i class="fa-solid fa-hand-holding-dollar text-xs"></i></div>
+       </div>
+       <p id="profile-fine-amount" class="text-3xl font-black text-mahogany-900 tracking-tight">Rp 0</p>
+       <p id="profile-fine-note" class="text-[10px] font-semibold text-mahogany-500 mt-1.5 bg-mahogany-50 px-2 py-0.5 rounded inline-block">Kewajiban Bersih</p>
+      </div>
+      
+      <div class="bg-white border border-mahogany-200/70 rounded-2xl p-5 shadow-premium">
+       <div class="flex items-center justify-between mb-2">
+         <span class="text-xs font-bold text-mahogany-400 uppercase tracking-wide">Buku Aktif Di Tangan</span>
+         <div class="w-7 h-7 bg-mahogany-50 rounded-lg flex items-center justify-center text-mahogany-600"><i class="fa-solid fa-book-open text-xs"></i></div>
+       </div>
+       <p class="text-3xl font-black text-mahogany-900 tracking-tight" id="active-count">0</p>
+       <p class="text-[10px] font-semibold text-mahogany-500 mt-1.5 bg-mahogany-50 px-2 py-0.5 rounded inline-block">Batas Maksimal: 3 Buku</p>
+      </div>
+     </div>
+
+     <div class="flex gap-6 border-b border-mahogany-100 mb-6 font-bold text-sm">
+      <button onclick="switchProfileTab('active')" id="tab-active" class="pb-2.5 tab-active flex items-center gap-2"><i class="fa-solid fa-box-archive text-xs"></i> Peminjaman & Pesanan Aktif</button>
+      <button onclick="switchProfileTab('history')" id="tab-history" class="pb-2.5 tab-inactive flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-xs"></i> Riwayat Transaksi & Kedisiplinan</button>
+     </div>
+     
+     <div id="profile-active" class="page-transition">
+      <div id="active-loans" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+      <div id="no-active" class="bg-white border border-mahogany-200 rounded-2xl py-12 text-center text-sm font-medium text-mahogany-400 shadow-sm">
+        <i class="fa-solid fa-circle-nodes text-2xl text-mahogany-200 mb-2 block"></i> Tidak ada peminjaman buku aktif terdata di server.
+      </div>
+     </div>
+     
+     <div id="profile-history" class="hidden page-transition">
+      <div class="bg-white border border-mahogany-200 rounded-2xl overflow-hidden shadow-premium">
+       <table class="w-full text-xs text-left">
+        <thead class="bg-mahogany-50 text-mahogany-800 font-bold border-b border-mahogany-100 uppercase tracking-wider">
+         <tr>
+          <th class="px-5 py-3">Metadata Koleksi Buku</th>
+          <th class="px-5 py-3">Batas Kedaluwarsa</th>
+          <th class="px-5 py-3">State Log Perpustakaan</th>
+          <th class="px-5 py-3 text-right">Kalkulasi Finansial</th>
+         </tr>
+        </thead>
+        <tbody id="history-table-body" class="divide-y divide-mahogany-50 font-medium text-mahogany-700 bg-white">
+          </tbody>
+       </table>
+      </div>
+      <div class="mt-4 p-4 bg-mahogany-50 border border-mahogany-200 rounded-xl flex justify-between items-center shadow-inner">
+       <span class="text-xs font-bold text-mahogany-700 uppercase tracking-wide flex items-center gap-1.5"><i class="fa-solid fa-wallet text-amber-600"></i> Status Tagihan Administrasi Sistem</span>
+       <span id="history-total-fine" class="text-base font-black text-mahogany-900">Rp 0</span>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <div id="page-admin" class="page flex-1 overflow-auto hidden">
+     <div class="max-w-6xl mx-auto px-6 py-8">
+       <div class="flex items-center justify-between mb-6 pb-3 border-b border-mahogany-100">
+         <div class="flex items-center gap-3">
+           <i class="fa-solid fa-user-shield text-2xl text-red-700"></i>
+           <div>
+             <h2 class="text-xl font-bold text-mahogany-900 tracking-tight">LitPath Admin Control Panel</h2>
+             <p class="text-xs text-mahogany-400 font-medium">Manajemen Riwayat, Konfirmasi Sirkulasi, & Manajemen Skor Denda Lapangan</p>
+           </div>
+         </div>
+         <div class="bg-red-50 text-red-800 border border-red-200 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+           Mode Otoritas Utama
+         </div>
+       </div>
+
+       <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+         <div class="bg-white border border-mahogany-200 rounded-2xl p-5 shadow-sm">
+           <p class="text-xs font-bold text-mahogany-400 uppercase tracking-wide mb-1">Total Buku Sedang Dipinjam</p>
+           <p id="admin-stat-active" class="text-2xl font-black text-mahogany-900">0 Eksemplar</p>
+         </div>
+         <div class="bg-white border border-mahogany-200 rounded-2xl p-5 shadow-sm">
+           <p class="text-xs font-bold text-mahogany-400 uppercase tracking-wide mb-1">Total Pendapatan Denda Sistem</p>
+           <p id="admin-stat-fines" class="text-2xl font-black text-emerald-700">Rp 0</p>
+         </div>
+         <div class="bg-white border border-mahogany-200 rounded-2xl p-5 shadow-sm">
+           <p class="text-xs font-bold text-mahogany-400 uppercase tracking-wide mb-1">Total Pengguna Terdaftar</p>
+           <p class="text-2xl font-black text-mahogany-900">2 Akun Perpustakaan</p>
+         </div>
+       </div>
+
+       <div class="bg-white border border-mahogany-200 rounded-2xl overflow-hidden shadow-premium">
+         <div class="p-4 bg-mahogany-50 border-b border-mahogany-100 flex justify-between items-center">
+           <h3 class="text-xs font-bold text-mahogany-800 uppercase tracking-wider">Daftar Log Sirkulasi Peminjam Global</h3>
+           <button onclick="showToast('Ekspor laporan sukses dibuat')" class="text-[11px] font-bold text-mahogany-700 bg-white border border-mahogany-200 px-3 py-1.5 rounded-lg hover:bg-mahogany-50 transition"><i class="fa-solid fa-file-export mr-1"></i> Unduh Laporan</button>
+         </div>
+         <div class="overflow-x-auto">
+           <table class="w-full text-xs text-left">
+             <thead class="bg-mahogany-100/50 text-mahogany-800 font-bold border-b border-mahogany-100 uppercase tracking-wider">
+               <tr>
+                 <th class="px-5 py-3">Data Peminjam / Akun</th>
+                 <th class="px-5 py-3">Buku & Catatan</th>
+                 <th class="px-5 py-3">Metode / Pengambilan</th>
+                 <th class="px-5 py-3">Status Kedisiplinan</th>
+                 <th class="px-5 py-3 text-right">Aksi Pustakawan</th>
+               </tr>
+             </thead>
+             <tbody id="admin-table-body" class="divide-y divide-mahogany-50 font-medium text-mahogany-700">
+               </tbody>
+           </table>
+         </div>
+       </div>
+     </div>
+   </div>
+
+   <div id="modal-book-detail" class="fixed inset-0 modal-overlay z-[100] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-mahogany-100 animate-slideUp">
+     <div class="flex flex-col sm:flex-row items-start gap-6 p-6 sm:p-8 relative">
+      <button onclick="closeModal('book')" class="absolute top-4 right-4 p-2 text-mahogany-400 hover:text-mahogany-700 hover:bg-mahogany-50 rounded-xl transition-all"><i class="fa-solid fa-xmark text-lg"></i></button>
+      
+      <div class="w-40 mx-auto sm:mx-0 flex-shrink-0 shadow-lg border border-mahogany-200/50 rounded-xl overflow-hidden bg-mahogany-100 aspect-[3/4]">
+        <img id="detail-cover" src="" alt="Cover" class="w-full h-full object-cover">
+      </div>
+      
+      <div class="flex-1 min-w-0 w-full">
+       <h2 id="detail-title" class="text-xl sm:text-2xl font-black text-mahogany-900 tracking-tight leading-tight mb-1">Judul Buku</h2>
+       <p id="detail-author" class="text-xs font-semibold text-mahogany-500 mb-3">Nama Penulis</p>
+       
+       <div class="flex items-center gap-2 mb-4">
+        <span id="detail-genre" class="px-2 py-0.5 bg-mahogany-100 text-mahogany-700 text-[10px] font-bold rounded uppercase tracking-wider">GENRE</span>
+        <span id="detail-status" class="px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider">STATUS</span>
+       </div>
+       
+       <p id="detail-description" class="text-xs text-mahogany-600 leading-relaxed bg-mahogany-50 p-3.5 rounded-xl border border-mahogany-100/60 mb-4 h-24 overflow-y-auto custom-scrollbar">Sinopsis detail buku.</p>
+       
+       <div class="grid grid-cols-3 gap-3 text-[11px] font-semibold text-mahogany-500 mb-5 pb-2 border-b border-mahogany-100/50">
+        <div><span class="block text-[10px] font-bold text-mahogany-400 uppercase">ISBN</span><span id="detail-isbn" class="font-mono text-mahogany-800"></span></div>
+        <div><span class="block text-[10px] font-bold text-mahogany-400 uppercase">Halaman</span><span id="detail-pages" class="text-mahogany-800"></span></div>
+        <div><span class="block text-[10px] font-bold text-mahogany-400 uppercase">Tahun Terbit</span><span id="detail-year" class="text-mahogany-800"></span></div>
+       </div>
+       
+       <button onclick="addToCartFromModal()" class="w-full px-4 py-3 bg-mahogany-700 text-cream-50 rounded-xl font-bold text-xs hover:bg-mahogany-800 shadow-md active:scale-[0.99] transition-all uppercase tracking-wider"><i class="fa-solid fa-cart-plus mr-1"></i> Masukkan ke Antrean Sirkulasi</button>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <div id="modal-reservation" class="fixed inset-0 modal-overlay z-[100] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-7 max-w-sm w-full text-center shadow-2xl border border-mahogany-100 page-transition">
+     <div class="w-14 h-14 mx-auto mb-3 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-inner">
+      <i class="fa-solid fa-circle-check text-2xl"></i>
+     </div>
+     <h3 class="font-black text-lg text-mahogany-900 tracking-tight">Sirkulasi Terverifikasi</h3>
+     <p class="text-xs font-semibold text-mahogany-400 mb-4">Kode QR Penjemputan Buku</p>
+     
+     <div class="mx-auto w-36 h-36 bg-mahogany-50 border border-mahogany-200/80 rounded-xl p-3 mb-3 flex items-center justify-center shadow-inner">
+      <svg id="qr-code" viewbox="0 0 100 100" class="w-full h-full"></svg>
+     </div>
+     
+     <p id="reservation-code" class="font-mono text-sm font-black bg-mahogany-100 px-3 py-1 text-mahogany-900 rounded-lg tracking-wider mb-3 inline-block"></p>
+     <p class="text-[10px] text-mahogany-400 font-medium px-2 leading-relaxed mb-5">Tunjukkan Kode QR digital di atas ke pustakawan di meja sirkulasi fisik perpustakaan Dumai.</p>
+     <button onclick="closeModal('reservation')" class="w-full px-5 py-2.5 bg-mahogany-700 text-cream-50 text-xs font-bold rounded-xl hover:bg-mahogany-800 transition-all uppercase tracking-wider">Tutup Log Dialog</button>
+    </div>
+   </div>
+
+  </div>
+
+  <script>
+    // DATA AKUN DATABASE (Laila diatur sebagai Admin Tersembunyi)
+    const REGISTERED_USERS = [
+      { email: "laila.azahra@email.com", password: "ti_politeknik", name: "Laila Azahra", role: "admin", penalty: 0, fine: 0 },
+      { email: "ahmad.firdaus@email.com", password: "password123", name: "Ahmad Firdaus", role: "user", penalty: 12, fine: 5000 }
+    ];
+
+    const books = [
+      { id: 1, title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling", genre: "Fiksi", year: "classic", cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400", isbn: "978-0590353427", pages: 309, description: "Kisah petualangan luar biasa anak yatim piatu yang menemukan takdir mistisnya di Sekolah Sihir Hogwarts.", status: "Tersedia" },
+      { id: 2, title: "Laskar Pelangi", author: "Andrea Hirata", genre: "Fiksi", year: "classic", cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=400", isbn: "978-9790658", pages: 534, description: "Novel inspiratif perjuangan sepuluh anak di pulau Belitung dalam meraih akses pendidikan yang layak dan bermartabat.", status: "Tersedia" },
+      { id: 3, title: "Bumi Manusia", author: "Pramoedya Ananta Toer", genre: "Sastra", year: "classic", cover: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&q=80&w=400", isbn: "978-9791234", pages: 628, description: "Kisah romansa Minke dan Annelies dalam pergolakan feodalisme serta kolonialisme Hindia Belanda awal abad ke-20.", status: "Tersedia" },
+      { id: 4, title: "Sapiens: Riwayat Singkat Manusia", author: "Yuval Noah Harari", genre: "Sejarah", year: "2023", cover: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=400", isbn: "978-0062316097", pages: 443, description: "Eksplorasi berani evolusi biologis dan sosiologis Homo Sapiens dari kera purba hingga mendominasi planet bumi.", status: "Tersedia" },
+      { id: 5, title: "Atomic Habits", author: "James Clear", genre: "Sains", year: "2023", cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=400", isbn: "978-0735211292", pages: 320, description: "Metodologi praktis meretas perilaku harian lewat perubahan 1 persen guna menciptakan lompatan prestasi hidup.", status: "Tersedia" },
+      { id: 6, title: "Filosofi Teras", author: "Henry Manampiring", genre: "Filsafat", year: "2022", cover: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=400", isbn: "978-9876543", pages: 240, description: "Penerapan konsep ketenangan mental Stoikisme kuno untuk meredam kecemasan mental masyarakat modern.", status: "Dipinjam" },
+      { id: 7, title: "Cosmos", author: "Carl Sagan", genre: "Sains", year: "classic", cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=400", isbn: "978-0345331860", pages: 365, description: "Mahakarya literatur astronomi yang menjabarkan keterkaitan kosmik materi bintang dengan eksistensi peradaban manusia.", status: "Tersedia" },
+      { id: 8, title: "Guns, Germs, and Steel", author: "Jared Diamond", genre: "Sejarah", year: "2024", cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400", isbn: "978-0393317558", pages: 494, description: "Bedah ilmiah faktor geografis dan lingkungan ekologi yang memicu disparitas kekayaan antarbangsa di dunia.", status: "Tersedia" }
+    ];
+
+    // CENTRALIZED LIVE ENGINE STATE
+    let cart = [];
+    let globalTransactions = [
+      { id: 101, userName: "Ahmad Firdaus", userEmail: "ahmad.firdaus@email.com", phone: "081266778899", address: "Jl. Jendral Sudirman No. 42, Dumai", bookTitle: "Atomic Habits", pickupDate: "2026-05-20", notes: "Ambil jam istirahat", payment: "Dana", status: "Terlambat", fine: 5000, penalty: 12, code: "LP-OVERDUE", cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=400" },
+      { id: 102, userName: "Ahmad Firdaus", userEmail: "ahmad.firdaus@email.com", phone: "081266778899", address: "Jl. Jendral Sudirman No. 42, Dumai", bookTitle: "Sapiens: Riwayat Singkat Manusia", pickupDate: "2026-05-18", notes: "-", payment: "OVO", status: "Dikembalikan", fine: 0, penalty: 0, code: "LP-DONE11", cover: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=400" }
+    ];
+    let currentBookDetail = null;
+    let currentUser = null;
+
+    function handleSecureLogin(event) {
+      event.preventDefault();
+      const emailInput = document.getElementById('login-email').value.trim();
+      const passwordInput = document.getElementById('login-password').value;
+      const errorPanel = document.getElementById('login-error');
+
+      const matchedUser = REGISTERED_USERS.find(user => user.email === emailInput && user.password === passwordInput);
+
+      if (matchedUser) {
+        currentUser = matchedUser;
+        errorPanel.classList.add('hidden');
+        
+        // Setup Form Checkout Otomatis dari Profil User Login
+        document.getElementById('checkout-name').value = currentUser.name;
+        
+        // Logika Hidden Admin Panel Nav Button
+        const adminBtn = document.getElementById('nav-btn-admin');
+        const navBadge = document.getElementById('nav-badge');
+        if (currentUser.role === 'admin') {
+          adminBtn.classList.remove('hidden');
+          navBadge.textContent = "Admin Control";
+          navBadge.className = "text-[10px] text-red-600 font-bold tracking-wider uppercase block";
+        } else {
+          adminBtn.classList.add('hidden');
+          navBadge.textContent = "Digital Hub";
+          navBadge.className = "text-[10px] text-mahogany-400 font-semibold tracking-wider uppercase block";
+        }
+
+        syncUserDashboardData();
+
+        document.getElementById('page-login').classList.add('hidden');
+        document.getElementById('navbar').classList.remove('hidden');
+        showPage('home');
+        showToast('Otorisasi Berhasil. Selamat datang, ' + currentUser.name);
+      } else {
+        errorPanel.classList.remove('hidden');
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+      }
+    }
+
+    function executeOAuth(provider) {
+      currentUser = REGISTERED_USERS.find(u => u.role === 'admin'); // Default Demo Auto Login ke Akun Laila Azahra (Admin)
+      document.getElementById('checkout-name').value = currentUser.name;
+      
+      document.getElementById('nav-btn-admin').classList.remove('hidden');
+      document.getElementById('nav-badge').textContent = "Admin Control";
+      document.getElementById('nav-badge').className = "text-[10px] text-red-600 font-bold tracking-wider uppercase block";
+
+      syncUserDashboardData();
+      
+      document.getElementById('page-login').classList.add('hidden');
+      document.getElementById('navbar').classList.remove('hidden');
+      showPage('home');
+      showToast(`Masuk via ${provider} ID (Hak Akses Terverifikasi)`);
+    }
+
+    // SINKRONISASI DATA ANTARA USER LOGGED IN DENGAN TRANSAKSI AKTIF & LOG ADMIN
+    function syncUserDashboardData() {
+      if(!currentUser) return;
+
+      document.getElementById('nav-user-name').textContent = currentUser.name;
+      document.getElementById('profile-display-name').textContent = currentUser.name;
+      document.getElementById('profile-display-email').textContent = currentUser.email;
+
+      // Filter Transaksi Real Milik User Saat ini
+      const myTransactions = globalTransactions.filter(t => t.userEmail === currentUser.email);
+      const activeLoansData = myTransactions.filter(t => t.status === 'Menunggu Konfirmasi' || t.status === 'Siap Diambil' || t.status === 'Dipinjam');
+      const historyLoansData = myTransactions.filter(t => t.status === 'Dikembalikan' || t.status === 'Terlambat' || t.status === 'Dibatalkan');
+
+      // Hitung akumulasi denda & poin penalti dinamis dari record database global
+      let computedFine = 0;
+      let computedPenalty = 0;
+      myTransactions.forEach(t => {
+        computedFine += t.fine;
+        computedPenalty += t.penalty;
+      });
+
+      // Update State di Halaman Profil User (Dinamis Sesuai Rekap)
+      document.getElementById('profile-penalty-points').textContent = computedPenalty;
+      document.getElementById('profile-fine-amount').textContent = 'Rp ' + computedFine.toLocaleString('id-ID');
+      document.getElementById('active-count').textContent = activeLoansData.length;
+      
+      const fineNote = document.getElementById('profile-fine-note');
+      if (computedFine > 0) {
+        fineNote.textContent = "Ada Tunggakan Lapangan";
+        fineNote.className = "text-[10px] font-bold text-red-600 mt-1.5 bg-red-50 px-2 py-0.5 rounded inline-block";
+      } else {
+        fineNote.textContent = "Kewajiban Bersih (Lunas)";
+        fineNote.className = "text-[10px] font-semibold text-emerald-700 mt-1.5 bg-emerald-50 px-2 py-0.5 rounded inline-block";
+      }
+
+      // Render Peminjaman Aktif User (Ada Tombol Batal)
+      const activeContainer = document.getElementById('active-loans');
+      const noActiveEl = document.getElementById('no-active');
+      
+      if(activeLoansData.length === 0) {
+        activeContainer.innerHTML = '';
+        noActiveEl.classList.remove('hidden');
+      } else {
+        noActiveEl.classList.add('hidden');
+        activeContainer.innerHTML = activeLoansData.map(l => `
+          <div class="bg-white border border-mahogany-200 rounded-xl p-4 flex gap-4 shadow-sm relative overflow-hidden group justify-between items-center">
+            <div class="absolute top-0 left-0 w-1 h-full bg-mahogany-600"></div>
+            <div class="flex gap-3 min-w-0">
+              <div class="w-12 h-16 rounded-lg overflow-hidden bg-mahogany-100 flex-shrink-0 border border-mahogany-200 shadow-inner">
+                <img src="${l.cover}" class="w-full h-full object-cover">
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-mahogany-900 truncate">${l.bookTitle}</h4>
+                <p class="text-[10px] font-medium text-mahogany-400">Kode: ${l.code}</p>
+                <div class="mt-1 flex gap-1.5 items-center">
+                  <span class="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase"><i class="fa-solid fa-clock-rotate-left animate-pulse mr-0.5"></i>${l.status}</span>
+                  <span class="text-[9px] font-semibold text-mahogany-500">Via ${l.payment}</span>
+                </div>
+              </div>
+            </div>
+            ${l.status === 'Menunggu Konfirmasi' ? `
+              <button onclick="cancelReservation(${l.id})" class="px-2.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 text-[10px] font-bold rounded-lg transition">Batal</button>
+            ` : ''}
+          </div>
+        `).join('');
+      }
+
+      // Render Tabel Riwayat Transaksi Profil
+      const historyTableBody = document.getElementById('history-table-body');
+      document.getElementById('history-total-fine').textContent = 'Rp ' + computedFine.toLocaleString('id-ID');
+      
+      if(historyLoansData.length === 0) {
+        historyTableBody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-mahogany-400">Belum ada riwayat transaksi kedisiplinan.</td></tr>`;
+      } else {
+        historyTableBody.innerHTML = historyLoansData.map(h => `
+          <tr class="hover:bg-cream-50/40">
+            <td class="px-5 py-3.5 font-bold text-mahogany-900">${h.bookTitle}</td>
+            <td class="px-5 py-3.5 text-mahogany-400">${h.pickupDate}</td>
+            <td class="px-5 py-3.5">
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md border ${
+                h.status === 'Dikembalikan' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
+                h.status === 'Terlambat' ? 'bg-red-50 text-red-700 border-red-100 animate-pulse' : 'bg-gray-50 text-gray-500 border-gray-200'
+              }">${h.status.toUpperCase()}</span>
+            </td>
+            <td class="px-5 py-3.5 text-right font-bold ${h.fine > 0 ? 'text-red-700' : 'text-mahogany-400'}">${h.fine > 0 ? 'Rp ' + h.fine.toLocaleString('id-ID') : '-'}</td>
+          </tr>
+        `).join('');
+      }
+
+      // REKAP METRICS HALAMAN ADMIN
+      renderAdminDashboard();
+    }
+
+    // RENDER HALAMAN REKAP UTAMA DASHBOARD ADMIN (HIDDEN)
+    function renderAdminDashboard() {
+      document.getElementById('admin-stat-active').textContent = globalTransactions.filter(t => t.status === 'Dipinjam' || t.status === 'Siap Diambil').length + ' Eksemplar';
+      
+      let totalAdminFinesCollected = 0;
+      globalTransactions.forEach(t => totalAdminFinesCollected += t.fine);
+      document.getElementById('admin-stat-fines').textContent = 'Rp ' + totalAdminFinesCollected.toLocaleString('id-ID');
+
+      const adminTableBody = document.getElementById('admin-table-body');
+      if(globalTransactions.length === 0) {
+        adminTableBody.innerHTML = `<tr><td colspan="5" class="px-5 py-6 text-center text-mahogany-400">Tidak ada log data transaksi sirkulasi global perpustakaan.</td></tr>`;
+      } else {
+        adminTableBody.innerHTML = globalTransactions.map(t => `
+          <tr class="hover:bg-mahogany-50/50">
+            <td class="px-5 py-3">
+              <div class="font-bold text-mahogany-900">${t.userName}</div>
+              <div class="text-[10px] text-mahogany-400">${t.userEmail}</div>
+              <div class="text-[10px] text-mahogany-500 font-mono font-semibold"><i class="fa-solid fa-phone text-[9px]"></i> ${t.phone}</div>
+            </td>
+            <td class="px-5 py-3">
+              <div class="font-semibold text-mahogany-800">${t.bookTitle}</div>
+              <div class="text-[10px] text-amber-700 font-medium bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded inline-block mt-0.5">Note: ${t.notes || '-'}</div>
+            </td>
+            <td class="px-5 py-3 text-mahogany-600 font-semibold">
+              <div>${t.pickupDate}</div>
+              <div class="text-[10px] text-mahogany-400">Wallet: <span class="font-bold text-mahogany-700">${t.payment}</span></div>
+            </td>
+            <td class="px-5 py-3">
+              <div class="mb-1"><span class="px-1.5 py-0.5 rounded text-[9px] font-black tracking-wider uppercase border ${
+                t.status === 'Menunggu Konfirmasi' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                t.status === 'Siap Diambil' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                t.status === 'Dipinjam' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                t.status === 'Terlambat' ? 'bg-red-50 text-red-700 border-red-200 animate-pulse' : 'bg-gray-50 text-gray-500 border-gray-200'
+              }">${t.status}</span></div>
+              <div class="text-[10px] font-bold text-mahogany-500">Skor: <span class="${t.penalty > 0 ? 'text-red-600':''}">${t.penalty}</span> | Denda: <span class="${t.fine > 0 ? 'text-red-600':''}">Rp ${t.fine.toLocaleString('id-ID')}</span></div>
+            </td>
+            <td class="px-5 py-3 text-right space-x-1 whitespace-nowrap">
+              ${t.status === 'Menunggu Konfirmasi' ? `
+                <button onclick="updateStatusByAdmin(${t.id}, 'Siap Diambil')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold transition">Siap Ambil</button>
+              ` : ''}
+              ${t.status === 'Siap Diambil' ? `
+                <button onclick="updateStatusByAdmin(${t.id}, 'Dipinjam')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-[10px] font-bold transition">Pinjamkan</button>
+              ` : ''}
+              ${t.status === 'Dipinjam' ? `
+                <button onclick="updateStatusByAdmin(${t.id}, 'Dikembalikan')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold transition">Kembalikan</button>
+                <button onclick="triggerOverdueAdmin(${t.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px] font-bold transition">Set Terlambat</button>
+              ` : ''}
+              ${t.fine > 0 || t.penalty > 0 ? `
+                <button onclick="resetFineByAdmin(${t.id})" class="bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded text-[10px] font-bold transition"><i class="fa-solid fa-check-double"></i> Bersihkan / Reset</button>
+              ` : ''}
+              ${t.status !== 'Dikembalikan' && t.status !== 'Dibatalkan' ? `
+                <button onclick="updateStatusByAdmin(${t.id}, 'Dibatalkan')" class="text-red-500 hover:text-red-700 text-[11px] font-bold px-1 transition" title="Batalkan Transaksi"><i class="fa-solid fa-ban"></i></button>
+              ` : '-'}
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // FUNGSI ADMIN EDIT STATUS SECARA REAL-TIME SANKSI DAN TRANSAKSI
+    function updateStatusByAdmin(id, newStatus) {
+      const trans = globalTransactions.find(t => t.id === id);
+      if(!trans) return;
+      trans.status = newStatus;
+      if(newStatus === 'Dikembalikan' || newStatus === 'Dibatalkan') {
+        // Jika kembali secara normal, denda tetap bersih 0
+        if (trans.status !== 'Terlambat') {
+          trans.fine = 0;
+          trans.penalty = 0;
+        }
+      }
+      showToast(`Status ID #${id} diperbarui menjadi ${newStatus}`);
+      syncUserDashboardData();
+    }
+
+    function triggerOverdueAdmin(id) {
+      const trans = globalTransactions.find(t => t.id === id);
+      if(!trans) return;
+      trans.status = "Terlambat";
+      trans.fine = 5000;  // Denda terisi dinamis pasca pelanggaran real
+      trans.penalty = 12; // Poin kedisiplinan bertambah
+      showToast(`Sanksi denda keterlambatan disematkan pada ID #${id}`);
+      syncUserDashboardData();
+    }
+
+    function resetFineByAdmin(id) {
+      const trans = globalTransactions.find(t => t.id === id);
+      if(!trans) return;
+      trans.fine = 0;
+      trans.penalty = 0;
+      showToast(`Denda & Skor Penalti ID #${id} lunas / direset admin`);
+      syncUserDashboardData();
+    }
+
+    // USER SIDE: FITUR BATALKAN RESERVASI
+    function cancelReservation(id) {
+      const trans = globalTransactions.find(t => t.id === id);
+      if(!trans) return;
+      trans.status = 'Dibatalkan';
+      trans.fine = 0;
+      trans.penalty = 0;
+      showToast('Pesanan reservasi sirkulasi berhasil dibatalkan.');
+      syncUserDashboardData();
+    }
+
+    function logout() {
+      currentUser = null;
+      cart = [];
+      updateCartUI();
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('navbar').classList.add('hidden');
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById('page-login').classList.remove('hidden');
+      showToast('Sesi otorisasi telah dihancurkan (Logged Out)');
+    }
+
+    function renderBooks(filteredList) {
+      const grid = document.getElementById('book-grid');
+      const noResults = document.getElementById('no-results');
+      const list = filteredList || books;
+      
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        noResults.classList.remove('hidden');
+        return;
+      }
+      noResults.classList.add('hidden');
+      
+      grid.innerHTML = list.map(b => `
+        <div class="book-card bg-white rounded-xl overflow-hidden border border-mahogany-100 shadow-sm flex flex-col justify-between">
+          <div class="aspect-[3/4] w-full relative overflow-hidden bg-mahogany-900 group cursor-pointer" onclick="openBookDetail(${b.id})">
+            <img src="${b.cover}" alt="${b.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+               <span class="text-[10px] font-bold text-cream-100 uppercase tracking-widest"><i class="fa-solid fa-eye mr-1"></i> Lihat Sinopsis</span>
+            </div>
+          </div>
+          <div class="p-3.5 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-xs text-mahogany-900 line-clamp-1 leading-tight mb-0.5" title="${b.title}">${b.title}</h3>
+              <p class="text-[10px] font-medium text-mahogany-400 mb-2.5">${b.author}</p>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-mahogany-50">
+              <span class="px-1.5 py-0.5 bg-mahogany-50 text-mahogany-600 rounded text-[9px] font-bold uppercase tracking-wider">${b.genre}</span>
+              <button onclick="addToCart(${b.id})" class="text-[10px] font-bold text-mahogany-700 hover:text-white border border-mahogany-200 hover:bg-mahogany-700 px-2.5 py-1 rounded-lg transition-all">Pinjam</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterBooks() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const genre = document.getElementById('genre-filter').value;
+      const year = document.getElementById('year-filter').value;
+
+      const filtered = books.filter(b => {
+        const matchesQuery = !query || b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query) || b.isbn.includes(query);
+        const matchesGenre = !genre || b.genre === genre;
+        const matchesYear = !year || b.year === year;
+        return matchesQuery && matchesGenre && matchesYear;
+      });
+      renderBooks(filtered);
+    }
+
+    function openBookDetail(id) {
+      currentBookDetail = books.find(b => b.id === id);
+      document.getElementById('detail-cover').src = currentBookDetail.cover;
+      document.getElementById('detail-title').textContent = currentBookDetail.title;
+      document.getElementById('detail-author').textContent = currentBookDetail.author;
+      document.getElementById('detail-genre').textContent = currentBookDetail.genre;
+      document.getElementById('detail-status').textContent = currentBookDetail.status;
+      
+      const statusEl = document.getElementById('detail-status');
+      if(currentBookDetail.status === "Tersedia") {
+        statusEl.className = "px-2 py-0.5 text-[9px] font-black rounded bg-emerald-50 text-emerald-700 border border-emerald-100";
+      } else {
+        statusEl.className = "px-2 py-0.5 text-[9px] font-black rounded bg-red-50 text-red-700 border border-red-100";
+      }
+
+      document.getElementById('detail-description').textContent = currentBookDetail.description;
+      document.getElementById('detail-isbn').textContent = currentBookDetail.isbn;
+      document.getElementById('detail-pages').textContent = currentBookDetail.pages + ' hlm.';
+      document.getElementById('detail-year').textContent = currentBookDetail.year === 'classic' ? 'Klasik' : currentBookDetail.year;
+      
+      document.getElementById('modal-book-detail').classList.remove('hidden');
+    }
+
+    function addToCartFromModal() {
+      if (currentBookDetail) {
+        addToCart(currentBookDetail.id);
+        closeModal('book');
+      }
+    }
+
+    function addToCart(id) {
+      // Validasi Poin Penalti Akun Sebelum Meminjam
+      if(currentUser && currentUser.penalty >= 25) {
+        showToast('Akses Ditolak: Skor Sanksi Anda mencapai batas maksimal. Sila Hubungi Admin.');
+        return;
+      }
+      if (cart.find(c => c.id === id)) {
+        showToast('Buku sudah berada dalam antrean sirkulasi');
+        return;
+      }
+      const myActiveLoansCount = globalTransactions.filter(t => t.userEmail === currentUser.email && (t.status === 'Dipinjam' || t.status === 'Siap Diambil' || t.status === 'Menunggu Konfirmasi')).length;
+      if (myActiveLoansCount + cart.length >= 3) {
+        showToast('Kuota maksimal peminjaman (3 Buku) tercapai');
+        return;
+      }
+      const book = books.find(b => b.id === id);
+      cart.push({ ...book });
+      updateCartUI();
+      showToast(`"${book.title}" masuk keranjang.`);
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(c => c.id !== id);
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const countEl = document.getElementById('cart-count');
+      const itemsEl = document.getElementById('cart-items');
+      const emptyEl = document.getElementById('cart-empty');
+      const summaryEl = document.getElementById('summary-count');
+      const btnEl = document.getElementById('confirm-btn');
+      const formPanel = document.getElementById('checkout-form-panel');
+
+      countEl.textContent = cart.length;
+      countEl.classList.toggle('hidden', cart.length === 0);
+      summaryEl.textContent = cart.length;
+      btnEl.disabled = cart.length === 0;
+
+      if (cart.length === 0) {
+        itemsEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        formPanel.classList.add('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+      formPanel.classList.remove('hidden');
+      
+      itemsEl.innerHTML = cart.map(c => `
+        <div class="flex items-center gap-4 bg-white border border-mahogany-100 rounded-xl p-3.5 shadow-sm">
+          <div class="w-11 h-14 rounded-lg overflow-hidden bg-mahogany-200 border border-mahogany-100 flex-shrink-0">
+            <img src="${c.cover}" class="w-full h-full object-cover">
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-xs font-bold text-mahogany-900 truncate">${c.title}</h4>
+            <p class="text-[10px] font-medium text-mahogany-400">${c.author}</p>
+            <p class="text-[10px] font-bold text-mahogany-600 mt-1"><i class="fa-solid fa-shield-halved"></i> Estimasi Pinjam: 7 Hari Kalender</p>
+          </div>
+          <button onclick="removeFromCart(${c.id})" class="p-2 hover:bg-red-50 text-mahogany-300 hover:text-red-500 rounded-lg transition-all"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+    }
+
+    // AKSI SUBMIT FORM CHECK-OUT: MEMASUKKAN DATA KE TRANSAKSI GLOBAL SECARA DINAMIS
+    function confirmReservation() {
+      if (cart.length === 0) return;
+
+      const checkoutName = document.getElementById('checkout-name').value.trim();
+      const checkoutPhone = document.getElementById('checkout-phone').value.trim();
+      const checkoutAddress = document.getElementById('checkout-address').value.trim();
+      const checkoutNotes = document.getElementById('checkout-notes').value.trim();
+      const checkoutPayment = document.getElementById('checkout-payment').value;
+      const pickupDate = document.getElementById('pickup-date').value;
+
+      if(!checkoutName || !checkoutPhone || !checkoutAddress || !pickupDate) {
+        showToast('Mohon lengkapi seluruh formulir data checkout!');
+        return;
+      }
+
+      const generatedCode = 'LP-' + Math.random().toString(36).substr(2, 7).toUpperCase();
+      document.getElementById('reservation-code').textContent = generatedCode;
+      
+      // Dorong data dinamis hasil inputan checkout ke global array database simulasi
+      cart.forEach(book => {
+        globalTransactions.push({
+          id: Date.now() + Math.floor(Math.random() * 100),
+          userName: checkoutName,
+          userEmail: currentUser.email,
+          phone: checkoutPhone,
+          address: checkoutAddress,
+          bookTitle: book.title,
+          pickupDate: pickupDate,
+          notes: checkoutNotes,
+          payment: checkoutPayment,
+          status: "Menunggu Konfirmasi", // Kondisi awal bersih tanpa penalti/skor langsung
+          fine: 0,
+          penalty: 0,
+          code: generatedCode,
+          cover: book.cover
+        });
+      });
+
+      generateQR();
+      cart = []; // Kosongkan keranjang pasca sukses checkout
+      
+      updateCartUI();
+      syncUserDashboardData(); // Re-render tab profil agar langsung sinkron otomatis
+      
+      // Kosongkan sisa field form
+      document.getElementById('checkout-phone').value = '';
+      document.getElementById('checkout-address').value = '';
+      document.getElementById('checkout-notes').value = '';
+
+      document.getElementById('modal-reservation').classList.remove('hidden');
+    }
+
+    function generateQR() {
+      const svg = document.getElementById('qr-code');
+      let rects = '';
+      for (let y = 0; y < 10; y++) {
+        for (let x = 0; x < 10; x++) {
+          if (Math.random() > 0.35 || (x < 3 && y < 3) || (x > 6 && y < 3) || (x < 3 && y > 6)) {
+            rects += `<rect x="${x*10}" y="${y*10}" width="9" height="9" fill="#231308"/>`;
+          }
+        }
+      }
+      svg.innerHTML = rects;
+    }
+
+    function closeModal(type) {
+      if (type === 'book') document.getElementById('modal-book-detail').classList.add('hidden');
+      if (type === 'reservation') document.getElementById('modal-reservation').classList.add('hidden');
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById('page-' + page).classList.remove('hidden');
+      document.querySelectorAll('.nav-link').forEach(l => {
+        const isCurrent = l.dataset.page === page;
+        if(l.id === 'nav-btn-admin') {
+          l.className = `nav-link px-4 py-2 rounded-xl text-xs font-bold tracking-tight transition-all ${isCurrent ? 'bg-red-700 text-white shadow-sm' : 'text-red-700 bg-red-50 hover:bg-red-100'}`;
+        } else {
+          l.className = `nav-link px-4 py-2 rounded-xl text-xs font-bold tracking-tight transition-all ${isCurrent ? 'bg-mahogany-700 text-white shadow-sm' : 'text-mahogany-600 hover:bg-mahogany-50'}`;
+        }
+      });
+    }
+
+    function switchProfileTab(tab) {
+      document.getElementById('profile-active').classList.toggle('hidden', tab !== 'active');
+      document.getElementById('profile-history').classList.toggle('hidden', tab !== 'history');
+      
+      document.getElementById('tab-active').className = `pb-2.5 text-xs font-bold flex items-center gap-2 ${tab === 'active' ? 'tab-active' : 'tab-inactive'}`;
+      document.getElementById('tab-history').className = `pb-2.5 text-xs font-bold flex items-center gap-2 ${tab === 'history' ? 'tab-active' : 'tab-inactive'}`;
+    }
+
+    function toggleEditProfile() {
+      showToast('Otoritas admin diperlukan untuk konfigurasi eksternal profil.');
+    }
+
+    function showToast(msg) {
+      const container = document.createElement('div');
+      container.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-mahogany-900 border border-mahogany-700 text-cream-50 text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-[200] flex items-center gap-2.5 min-w-[280px] justify-center';
+      container.innerHTML = `<i class="fa-solid fa-circle-nodes text-amber-500"></i> <span>${msg}</span>`;
+      document.body.appendChild(container);
+      setTimeout(() => container.remove(), 2800);
+    }
+
+    // Set Default Target Penjemputan Otomatis Besok Hari
+    const tomorrow = new Date(); 
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('pickup-date').value = tomorrow.toISOString().split('T')[0];
+
+    // Inisialisasi awal list buku
+    renderBooks();
+  </script>
+ </body>
+</html>
